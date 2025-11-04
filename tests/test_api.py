@@ -107,7 +107,7 @@ class NetworkNodeAPITest(APITestCase):
         """Ensure the list view is paginated."""
         # Create 15 nodes to test pagination (PAGE_SIZE is 10)
         for i in range(15):
-            NetworkNode.objects.create(name=f'Node {i}', country='USA', node_type=NetworkNode.NodeType.FACTORY)
+            NetworkNode.objects.create(name=f'Node {i}', country='USA')
         
         self.client.login(username='active_user', password='password')
         url = reverse('networknode-list')

@@ -32,10 +32,20 @@ class NetworkNodeWriteSerializer(serializers.ModelSerializer):
     # This remains as PrimaryKeyRelatedField for writing (accepting IDs)
     products = serializers.PrimaryKeyRelatedField(many=True, queryset=Product.objects.all(), required=False)
 
+    def validate_supplier(self, value):
+        """
+        Validate that supplier hierarchy doesn't exceed max depth.
+        """
+        if value and value.hierarchy_level >= 2:
+            raise serializers.ValidationError(
+                "The hierarchy cannot be deeper than 3 levels (supplier cannot be level 2)."
+            )
+        return value
+
     class Meta:
         model = NetworkNode
         # We don't need to show all fields on write, just the ones that are writeable.
-        fields = ('name', 'node_type', 'email', 'country', 'city', 'street', 'house_number', 'products', 'supplier')
+        fields = ('name', 'email', 'country', 'city', 'street', 'house_number', 'products', 'supplier')
         # The debt field is correctly not included here, so it can't be written.
         # read_only_fields is not strictly necessary if we list the fields explicitly,
         # but it adds an extra layer of protection.

@@ -4,10 +4,10 @@
 
 ## Технологический стек
 
-- Python 3.10+
-- Django 4+
-- Django REST Framework
-- PostgreSQL
+- Python (версия >=3.10)
+- Django (версия >=5.2.7)
+- Django REST Framework (версия >=3.16.1)
+- PostgreSQL (версия >=10)
 - Poetry
 
 ## Структура сети
@@ -32,20 +32,7 @@
 2.  **Настройте переменные окружения:**
     Скопируйте `.env.example` в `.env` и заполните данные для подключения к вашей базе данных PostgreSQL.
 
-    Пример `.env`:
-    ```env
-    SECRET_KEY=your-super-secret-and-long-key
-    DEBUG=True
-
-    DB_NAME=electronics_db
-    DB_USER=user
-    DB_PASSWORD=password
-    DB_HOST=localhost
-    DB_PORT=5432
-    ```
-
 3.  **Установите зависимости с помощью Poetry:**
-    Убедитесь, что у вас установлен Poetry. Затем выполните:
     ```bash
     poetry install
     ```
@@ -56,13 +43,11 @@
     ```
 
 5.  **Создайте суперпользователя (сотрудника):**
-    Этот пользователь будет использоваться для доступа к админ-панели и API.
     ```bash
     poetry run python manage.py createsuperuser
     ```
 
 6.  **Заполните базу тестовыми данными (Рекомендуется):**
-    Эта команда создаст несколько продуктов и демонстрационную иерархию сети.
     ```bash
     poetry run python manage.py seed_data
     ```
@@ -80,59 +65,24 @@
 
 **Аутентификация:** Все эндпоинты требуют аутентификации. Доступ разрешен только для активных сотрудников (`is_active=True`).
 
-**Базовый URL:** `/network/`
+**Базовый URL:** `/api/network/`
+
+Документация также доступна в форматах Swagger и ReDoc по адресам:
+- `http://127.0.0.1:8000/api/schema/swagger-ui/`
+- `http://127.0.0.1:8000/api/schema/redoc/`
 
 ---
 
-### Ресурс: Звенья сети (`/network/nodes/`)
+### Ресурс: Звенья сети (`/api/network/nodes/`)
 
-#### `GET /network/nodes/`
+#### `GET /api/network/nodes/`
 Получение списка всех звеньев сети.
 
 - **Фильтрация:**
   - `?country=<название_страны>` - фильтрация по стране (без учета регистра).
+  - **Пример:** `GET /api/network/nodes/?country=Россия`
 
-- **Пример ответа (`200 OK`):**
-  ```json
-  [
-      {
-          "id": 1,
-          "name": "Завод "Электроника"",
-          "email": "factory1@example.com",
-          "country": "Россия",
-          "city": "Москва",
-          "street": "Промышленная",
-          "house_number": "1",
-          "products": [
-              {
-                  "id": 1,
-                  "name": "Смартфон",
-                  "model": "Galaxy S25",
-                  "release_date": "2025-02-01"
-              }
-          ],
-          "supplier": null,
-          "debt": "0.00",
-          "created_at": "2025-11-03T12:00:00Z",
-          "level": 0
-      },
-      {
-          "id": 2,
-          "name": "Сеть "ТехноМир"",
-          "email": "retail1@example.com",
-          "country": "Россия",
-          // ...
-          "supplier": {
-              "id": 1,
-              "name": "Завод "Электроника""
-          },
-          "debt": "25000.75",
-          "level": 1
-      }
-  ]
-  ```
-
-#### `POST /network/nodes/`
+#### `POST /api/network/nodes/`
 Создание нового звена сети.
 
 - **Пример тела запроса:**
@@ -144,19 +94,28 @@
       "city": "Казань",
       "street": "ул. Баумана",
       "house_number": "50",
-      "supplier": 2,
+      "supplier": 2, // ID розничной сети
       "products": [1, 3]
   }
   ```
 
-#### `GET /network/nodes/{id}/`
-Получение детальной информации о звене сети. Ответ аналогичен объекту в списке `GET`.
+- **Пример ошибки валидации (создание узла с уровнем > 2):**
+  ```json
+  {
+      "supplier": [
+          "The hierarchy cannot be deeper than 3 levels (supplier cannot be level 2)."
+      ]
+  }
+  ```
 
-#### `PUT / PATCH /network/nodes/{id}/`
+#### `GET /api/network/nodes/{id}/`
+Получение детальной информации о звене сети.
+
+#### `PUT / PATCH /api/network/nodes/{id}/`
 Полное или частичное обновление информации о звене.
 - **Важно:** Поле `debt` (задолженность) не может быть изменено через API.
 
-#### `DELETE /network/nodes/{id}/`
+#### `DELETE /api/network/nodes/{id}/`
 Удаление звена сети.
 
 ---
@@ -167,4 +126,19 @@
 
 ```bash
 poetry run python manage.py test
+```
+
+### Анализ покрытия тестами
+
+Для генерации отчета о покрытии кода тестами выполните следующие команды:
+
+```bash
+# Запуск тестов со сбором данных о покрытии
+poetry run coverage run manage.py test
+
+# Отображение отчета в консоли
+poetry run coverage report
+
+# (Опционально) Генерация HTML-отчета для детального просмотра
+poetry run coverage html
 ```

@@ -14,12 +14,6 @@ class Product(models.Model):
         verbose_name_plural = 'Продукты'
 
 class NetworkNode(models.Model):
-    class NodeType(models.IntegerChoices):
-        FACTORY = 0, 'Завод'
-        RETAIL_NETWORK = 1, 'Розничная сеть'
-        ENTREPRENEUR = 2, 'Индивидуальный предприниматель'
-
-    node_type = models.IntegerField(choices=NodeType.choices, verbose_name='Тип звена', default=NodeType.FACTORY)
     name = models.CharField(max_length=255, verbose_name='Название')
     email = models.EmailField(verbose_name='Email')
     country = models.CharField(max_length=100, verbose_name='Страна')
@@ -33,24 +27,36 @@ class NetworkNode(models.Model):
 
     @property
     def hierarchy_level(self):
-        if self.node_type == self.NodeType.FACTORY:
-            return 0
         if not self.supplier:
-            # This case should ideally not happen if validation is correct
             return 0
         return self.supplier.hierarchy_level + 1
 
+    @property
+    def node_type(self):
+        level = self.hierarchy_level
+        if level == 0:
+            return 'Завод'
+        elif level == 1:
+            return 'Розничная сеть'
+        elif level == 2:
+            return 'Индивидуальный предприниматель'
+        return 'Неопределенный тип'
+
     def clean(self):
-        if self.node_type == self.NodeType.FACTORY and self.supplier is not None:
-            raise ValidationError('A factory cannot have a supplier.')
+        # Check for self-reference first to prevent recursion
         if self.supplier == self:
             raise ValidationError('A node cannot be its own supplier.')
-        # Check for circular dependency
+
+        # Check for circular dependency before accessing hierarchy_level
         ancestor = self.supplier
         while ancestor is not None:
             if ancestor == self:
                 raise ValidationError('Circular dependency detected.')
             ancestor = ancestor.supplier
+
+        # Now it's safe to check the hierarchy depth
+        if self.supplier and self.supplier.hierarchy_level >= 2:
+            raise ValidationError('The hierarchy cannot be deeper than 3 levels (Factory -> Retail -> Entrepreneur).')
 
     def __str__(self):
         return self.name
