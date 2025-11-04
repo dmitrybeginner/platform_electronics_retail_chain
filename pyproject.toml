@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "platform-electronics-retail-chain"
+version = "0.1.0"
+description = ""
+authors = ["dmitr <dmitry_romanof@mail.ru>"]
+readme = "README.md"
+packages = [
+    { include = "config" },
+    { include = "network" },
+    { include = "users" },
+]
+
+[tool.poetry.dependencies]
+python = ">=3.10"
+django = ">=5.2.7,<6.0.0"
+djangorestframework = ">=3.16.1,<4.0.0"
+psycopg2-binary = ">=2.9.11,<3.0.0"
+django-filter = ">=25.2,<26.0"
+python-dotenv = ">=1.0.0,<2.0.0"
+drf-spectacular = "^0.29.0"
+
+[tool.poetry.group.dev.dependencies]
+coverage = "^7.11.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

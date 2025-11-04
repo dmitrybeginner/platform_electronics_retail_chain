@@ -1,0 +1,28 @@
+# Environments
+.env
+.env.*
+!/.env.example
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+venv/
+env/
+
+# Django
+staticfiles/
+media/
+
+# IDE
+.idea/
+.vscode/
+
+# Coverage
+.coverage
+htmlcov/
+
+# OS
+.DS_Store
